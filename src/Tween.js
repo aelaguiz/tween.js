@@ -7,56 +7,39 @@
  */
 
 var TWEEN = TWEEN || ( function() {
-
 	var i, n, time, tweens = [];
 
 	this.add = function ( tween ) {
-
 		tweens.push( tween );
-
 	};
 
 	this.remove = function ( tween ) {
-
 		i = tweens.indexOf( tween );
 
 		if ( i !== -1 ) {
-
 			tweens.splice( i, 1 );
-
 		}
-
 	};
 
 	this.update = function () {
-
 		i = 0;
 		n = tweens.length;
 		time = new Date().getTime();
 
 		while ( i < n ) {
-
 			if ( tweens[ i ].update( time ) ) {
-
 				i++;
-
 			} else {
-
 				tweens.splice( i, 1 );
 				n--;
-
 			}
-
 		}
-
 	};
 
 	return this;
-
 } )();
 
 TWEEN.Tween = function ( object ) {
-
 	var _object = object,
 	_valuesStart = {},
 	_valuesDelta = {},
@@ -67,107 +50,87 @@ TWEEN.Tween = function ( object ) {
 	_easingFunction = TWEEN.Easing.Linear.EaseNone,
 	_chainedTween = null,
 	_onUpdateCallback = null,
-	_onCompleteCallback = null;
+	_onCompleteCallback = null,
+	_id = Math.floor(Math.random()*100),
+	_running = false;
 
 	this.to = function ( properties, duration ) {
-
 		if( duration !== null ) {
-
 			_duration = duration;
-
 		}
 
 		for ( var property in properties ) {
-
 			// This prevents the engine from interpolating null values
 			if ( _object[ property ] === null ) {
-
 				continue;
-
 			}
 
 			// The current values are read when the tween starts;
 			// here we only store the final desired values
 			_valuesEnd[ property ] = properties[ property ];
-
 		}
 
 		return this;
-
 	};
 
 	this.start = function () {
-
 		TWEEN.add( this );
-
+		_running = true;
+		
 		_startTime = new Date().getTime() + _delayTime;
-
+	
+		//console.log("Starting tween with duration " + _duration + " and start " + _startTime + " id " + _id);
+		
 		for ( var property in _valuesEnd ) {
-
 			// Again, prevent dealing with null values
 			if ( _object[ property ] === null ) {
-
 				continue;
-
 			}
 
 			_valuesStart[ property ] = _object[ property ];
 			_valuesDelta[ property ] = _valuesEnd[ property ] - _object[ property ];
-
 		}
 
 		return this;
 	};
 
 	this.stop = function () {
-
 		TWEEN.remove( this );
 		return this;
-
 	};
 
 	this.delay = function ( amount ) {
-
 		_delayTime = amount;
 		return this;
-
 	};
 
 	this.easing = function ( easing ) {
-
 		_easingFunction = easing;
 		return this;
-
 	};
 
 	this.chain = function ( chainedTween ) {
-
 		_chainedTween = chainedTween;
-
 	};
+	
+	this.isRunning = function() {
+		return _running;
+	}
 
 	this.onUpdate = function ( onUpdateCallback ) {
-
 		_onUpdateCallback = onUpdateCallback;
 		return this;
-
 	};
 
 	this.onComplete = function ( onCompleteCallback ) {
-
 		_onCompleteCallback = onCompleteCallback;
 		return this;
-
 	};
 
 	this.update = function ( time ) {
-
 		var property, elapsed, value;
-
 		if ( time < _startTime ) {
-
 			return true;
-
 		}
 
 		elapsed = ( time - _startTime ) / _duration;
@@ -176,33 +139,26 @@ TWEEN.Tween = function ( object ) {
 		value = _easingFunction( elapsed );
 
 		for ( property in _valuesDelta ) {
-
 			_object[ property ] = _valuesStart[ property ] + _valuesDelta[ property ] * value;
-
 		}
 
 		if ( _onUpdateCallback !== null ) {
-
 			_onUpdateCallback.call( _object, value );
-
 		}
 
 		if ( elapsed == 1 ) {
-
+			_running = false;
+			
+			//console.log("Calling callback, elapsed = " + elapsed + " with duration " + _duration + " " + _startTime + " now " + time + " diff " + (time-_startTime)  + " id " + _id );
 			if ( _onCompleteCallback !== null ) {
-
 				_onCompleteCallback.call( _object );
-
 			}
 
 			if ( _chainedTween !== null ) {
-
 				_chainedTween.start();
-
 			}
 
 			return false;
-
 		}
 
 		return true;
@@ -219,7 +175,6 @@ TWEEN.Tween = function ( object ) {
 }
 
 TWEEN.Easing = { Linear: {}, Quadratic: {}, Cubic: {}, Quartic: {}, Quintic: {}, Sinusoidal: {}, Exponential: {}, Circular: {}, Elastic: {}, Back: {}, Bounce: {} };
-
 
 TWEEN.Easing.Linear.EaseNone = function ( k ) {
 
