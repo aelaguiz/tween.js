@@ -1,4 +1,4 @@
-Amir's fork of:
+Amir's fork of Tween.js on 1/17/10
 
 Tween.js
 ========
